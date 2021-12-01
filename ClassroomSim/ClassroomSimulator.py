@@ -69,7 +69,7 @@ else:
 
 #load seating function
 if args.seating == 'random':
-    seating_function = ClassSimPackageg.generate_random_plan
+    seating_function = ClassSimPackage.generate_random_plan
 else:
     seating_function = ClassSimPackage.generate_clumpy_plan
 
