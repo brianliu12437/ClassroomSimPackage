@@ -10,36 +10,36 @@ import ClassSimPackage
 #Parse in command line arguments
 parser = argparse.ArgumentParser()
 
-parser.add_argument(dest='distancing', choices = ['1','3','6'], type = str,
+parser.add_argument('--distancing', dest='distancing', choices = ['1','3','6'], type = str,
             help="Social distancing configuration in feet: [1,3,6]")
 
-parser.add_argument(dest='masking', choices = [True,False], type = bool, help= \
+parser.add_argument('--masking', dest='masking', choices = [True,False], type = bool, help= \
             "Masks required: [True, False]")
 
-parser.add_argument(dest='behavior', choices = ['breathing','speaking' \
+parser.add_argument('--behavior', dest='behavior', choices = ['breathing','speaking' \
             ,'singing','heavy_breathing','no_aerosol'], type = str,
             help= "Classroom behavior: \
             ['breathing','speaking','singing','heavy_breathing','no_aerosol']")
 
-parser.add_argument(dest='proportion_class_vaccinated',type = float,
+parser.add_argument('--frac_vax', dest='proportion_class_vaccinated',type = float,
             help= "Proportion of the class vaccinated")
 
-parser.add_argument(dest='vaccine_efficacy',type = float,
-            help= "Vaccine efficacy")
+parser.add_argument('--vax_susceptible', dest='vaccine_efficacy',type = float,
+            help= "Vaccine efficacy for a susceptible person")
 
-parser.add_argument(dest='vaccine_efficacy_transmission',type = float,
+parser.add_argument('--vax_transmission', dest='vaccine_efficacy_transmission',type = float,
             help= "Vaccine efficacy against transmission")
 
-parser.add_argument(dest='seating', choices = ['random','clumpy'], type = str,
+parser.add_argument('--seating_pattern', dest='seating', choices = ['random','clumpy'], type = str,
             help= "Classroom seating options: [True, False]")
 
-parser.add_argument(dest='time',type = float,
-            help= "Time spent in classroom")
+parser.add_argument('--hours_in_class', dest='time',type = float,
+            help= "Time (in hours) spent in classroom")
 
-parser.add_argument(dest='air_exchanges_per_hour',type = float,
+parser.add_argument('--ACH', dest='air_exchanges_per_hour',type = float,
             help= "Air exchanges per hour in the room")
 
-parser.add_argument(dest = 'ntrials', type = int,
+parser.add_argument('--ntrials', dest = 'ntrials', type = int,
             help = 'Number of repitions to run the simulator')
 
 

@@ -152,7 +152,7 @@ def simulate_single_trial(room,vax_infected, unvax_infected,
     infected_x = infected['x']
     infected_y = infected['y']
 
-    unvax_aerosol_risk = (1/air_exchanges_per_hour)*\
+    unvax_aerosol_risk = (1/air_exchanges_per_hour+1)*\
         generate_aerosol_risk(room_vol, vax_infected, unvax_infected, time,\
                             class_type,class_risk_params,aerosol_params)
 
