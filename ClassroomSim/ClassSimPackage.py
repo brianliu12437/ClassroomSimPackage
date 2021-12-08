@@ -21,6 +21,18 @@ def flip(p):
     """
     return 1 if random.random() < p else 0
 
+def sample_trunc_normal(mean, sd, lb = 0, ub = 1):
+    """
+    Sample a truncated normal random variable with specified mean, sd, lower bound and upper bound.
+    """
+    valid = False
+    while not valid:
+        s = np.random.normal(mean, sd, 1)[0]
+        if s >= lb and s <= ub:
+            valid = True
+  
+    return s
+
 # plan generation functions
 def generate_clumpy_plan(N,p,room, clump_size = 3):
     """ Generates a seating plan where the unvaccinated students sit together
@@ -152,7 +164,8 @@ def simulate_single_trial(room,vax_infected, unvax_infected,
     infected_x = infected['x']
     infected_y = infected['y']
 
-    unvax_aerosol_risk = (1/air_exchanges_per_hour+1)*\
+    # 1 air exchange per hour => aerosols reduced by half
+    unvax_aerosol_risk = 1/(air_exchanges_per_hour+1)*\
         generate_aerosol_risk(room_vol, vax_infected, unvax_infected, time,\
                             class_type,class_risk_params,aerosol_params)
 
@@ -194,6 +207,7 @@ def simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
     aerosol_results = []
     while trial < ntrials:
         grid = seating_function(N,p,room)
+        # probability that an infected person is vaccinated
         p_generate = (1-class_risk_params['vax_effectiveness'])*p/(1-class_risk_params['vax_effectiveness']*p)
         ind = flip(p_generate)
 

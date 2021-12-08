@@ -24,11 +24,11 @@ parser.add_argument('--behavior', dest='behavior', choices = ['breathing','speak
 parser.add_argument('--frac_vax', dest='proportion_class_vaccinated',type = float,
             help= "Proportion of the class vaccinated")
 
-parser.add_argument('--vax_susceptible', dest='vaccine_efficacy',type = float,
-            help= "Vaccine efficacy for a susceptible person")
+parser.add_argument('--vax_susceptible', dest='vaccine_efficacy',type = float, nargs='+', action='append',
+            help= "Vaccine efficacy values for a susceptible person (default: discrete uniform dist over supplied values)")
 
-parser.add_argument('--vax_transmission', dest='vaccine_efficacy_transmission',type = float,
-            help= "Vaccine efficacy against transmission")
+parser.add_argument('--vax_transmission', dest='vaccine_efficacy_transmission',type = float, nargs='+', action='append',
+            help= "Vaccine efficacy values against transmission (default: discrete uniform dist over supplied values)")
 
 parser.add_argument('--seating_pattern', dest='seating', choices = ['random','clumpy'], type = str,
             help= "Classroom seating options: [True, False]")
@@ -41,6 +41,15 @@ parser.add_argument('--ACH', dest='air_exchanges_per_hour',type = float,
 
 parser.add_argument('--ntrials', dest = 'ntrials', type = int,
             help = 'Number of repitions to run the simulator')
+
+parser.add_argument('--prevalence', dest = 'prevalence', type = float, 
+            help = 'Prevalence among attendees')
+
+parser.add_argument('--vax_rate', dest = 'vax_rate', type = float,
+            help = 'Fraction of attendees vaccinated')
+
+parser.add_argument('--nsamples', dest = 'nsamples', type = int,
+            help = 'Number of samples for generating the outcome distribution')
 
 
 args = parser.parse_args()
@@ -82,6 +91,8 @@ class_type = args.behavior
 ntrials = args.ntrials
 air_exchanges_per_hour = args.air_exchanges_per_hour
 
+# TODO: change this for every VE-VE combo
+# take cartesian product between the two arguments
 class_risk_params = {
             'vax_effectiveness_transmission':args.vaccine_efficacy_transmission,
             'vax_effectiveness': args.vaccine_efficacy
@@ -97,7 +108,15 @@ aerosol_params = {
     'viral_load_distribution': [0.12, 0.22, 0.3, 0.23, 0.103, 0.0236, 0.0034] # over orders of magnitude from 10^5 to 10^11
 }
 
+# TODO: add default distribution for masking effectiveness (I imagine this won't change much, so we don't need argparse for it)
+
 test = ClassSimPackage.simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
                             room_vol,pixels_per_foot,air_exchanges_per_hour,
                             class_risk_params ,aerosol_params, ntrials)
 print(test)
+
+
+# TODO: add function for sampling from results with varying VE-VE combo and masking effectiveness distribution
+# TODO: function for plotting the histogram and printing quantiles
+
+# TODO: add documentation; clean up variable names
