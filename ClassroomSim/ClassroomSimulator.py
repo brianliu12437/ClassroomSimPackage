@@ -24,10 +24,10 @@ parser.add_argument('--behavior', dest='behavior', choices = ['breathing','speak
 parser.add_argument('--frac_vax', dest='proportion_class_vaccinated',type = float,
             help= "Proportion of the class vaccinated")
 
-parser.add_argument('--vax_susceptible', dest='vaccine_efficacy',type = float, nargs='+', action='append',
+parser.add_argument('--VE_susceptible', dest='vaccine_efficacy',type = float, nargs='+', action='append',
             help= "Vaccine efficacy values for a susceptible person (default: discrete uniform dist over supplied values)")
 
-parser.add_argument('--vax_transmission', dest='vaccine_efficacy_transmission',type = float, nargs='+', action='append',
+parser.add_argument('--VE_transmission', dest='vaccine_efficacy_transmission', type = float, nargs='+', action='append',
             help= "Vaccine efficacy values against transmission (default: discrete uniform dist over supplied values)")
 
 parser.add_argument('--seating_pattern', dest='seating', choices = ['random','clumpy'], type = str,
@@ -40,7 +40,7 @@ parser.add_argument('--ACH', dest='air_exchanges_per_hour',type = float,
             help= "Air exchanges per hour in the room")
 
 parser.add_argument('--ntrials', dest = 'ntrials', type = int,
-            help = 'Number of repitions to run the simulator')
+            help = 'Number of repetitions to run the simulator')
 
 parser.add_argument('--prevalence', dest = 'prevalence', type = float, 
             help = 'Prevalence among attendees')
@@ -69,7 +69,7 @@ elif args.distancing == '3':
         room_vol = layout['volume']
         room = layout['plan']
 
-else:
+else: # 6 ft distancing
     with open("../Data/big_room_info.pickle" , 'rb') as handle:
         layout = pickle.load(handle)
         pixels_per_foot = layout['pixels_per_foot']
@@ -93,7 +93,7 @@ air_exchanges_per_hour = args.air_exchanges_per_hour
 
 # TODO: change this for every VE-VE combo
 # take cartesian product between the two arguments
-class_risk_params = {
+VE_params = {
             'vax_effectiveness_transmission':args.vaccine_efficacy_transmission,
             'vax_effectiveness': args.vaccine_efficacy
             }
@@ -112,7 +112,7 @@ aerosol_params = {
 
 test = ClassSimPackage.simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
                             room_vol,pixels_per_foot,air_exchanges_per_hour,
-                            class_risk_params ,aerosol_params, ntrials)
+                            VE_params, aerosol_params, ntrials)
 print(test)
 
 

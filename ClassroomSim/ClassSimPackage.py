@@ -5,40 +5,20 @@ import itertools
 import random
 import math
 import warnings
-
-#helper functions
-def Diff(li1, li2):
-    """
-    Difference of sets
-    """
-    li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
-    return li_dif
+from .helpers import *
 
 
-def flip(p):
-    """
-    Biased coin flipper
-    """
-    return 1 if random.random() < p else 0
-
-def sample_trunc_normal(mean, sd, lb = 0, ub = 1):
-    """
-    Sample a truncated normal random variable with specified mean, sd, lower bound and upper bound.
-    """
-    valid = False
-    while not valid:
-        s = np.random.normal(mean, sd, 1)[0]
-        if s >= lb and s <= ub:
-            valid = True
-  
-    return s
-
-# plan generation functions
-def generate_clumpy_plan(N,p,room, clump_size = 3):
-    """ Generates a seating plan where the unvaccinated students sit together
+# Generate seatinig plans
+def generate_clumpy_plan(N, p_vax, room, clump_size = 3):
+    """ 
+    Generates a seating plan where the unvaccinated students sit together
     in clumps. Represents the worst case scenario.
+    N: the number of students in the classroom
+    p_vax: fraction of individuals in the room vaccinated
+    room: type of room
+    clump_size: the size of the "clump" of unvaccinated individuals that tend to sit together
     """
-    Nvax = np.random.binomial(N,p)
+    Nvax = np.random.binomial(N, p_vax)
     Nunvax = N-Nvax
     room = room.drop('UnvaxSpot',axis = 1).reset_index()
     grid = room.copy()
@@ -71,10 +51,11 @@ def generate_clumpy_plan(N,p,room, clump_size = 3):
 
     return grid
 
-def generate_random_plan(N,p,room):
-    """ Generates a seating plan where students sit randomly in the room
+def generate_random_plan(N, p_vax, room):
+    """ 
+    Generates a seating plan where students sit randomly in the room
     """
-    Nvax = round(N*p)
+    Nvax = round(N*p_vax)
     Nunvax = N-Nvax
     room = room.drop('UnvaxSpot',axis = 1)
     grid = room.copy()
@@ -83,22 +64,35 @@ def generate_random_plan(N,p,room):
             np.repeat('U',Nunvax)),np.repeat('E',len(grid)-Nvax-Nunvax)))
     random.shuffle(temp)
     grid['seating'] = temp
+
     return grid
 
 
-    #simulator functions
 
-def distance_to_prob(d,susceptible_status,source_status,
-                    time,pixels_per_foot,class_type,class_risk_params):
+#simulator functions
+
+def droplet_risk_by_distance(d, susceptible_status, source_status,
+                    time, pixels_per_foot, class_type, VE_params):
+
+    """
+    Computes the risk that a susceptible person is infected through droplet transmission
+    by a source case seated a certain distance away from him/her, depending on the vaccination status of both
+    individuals, exposure time, VE parameters, and class type.
+    d: distance between source and susceptible, measured in feet. One of 1, 3, and 6.
+    susceptible status: 'V' = vaccinated, 'U' = unvaccinated
+    source_status: 'V' = vaccinated, 'U' = unvaccinated
+    time: length of exposure, measured in hours
+    pixels_per_foot: a 
+    """
 
     d = d/pixels_per_foot*0.3048
     susceptible_const = 1
     source_const = 1
 
     if susceptible_status == 'V':
-        susceptible_const = 1 - class_risk_params['vax_effectiveness']
+        susceptible_const = 1 - VE_params['vax_effectiveness']
     if source_status == 'V':
-        source_const = (1 - class_risk_params['vax_effectiveness_transmission'])
+        source_const = (1 - VE_params['vax_effectiveness_transmission'])
 
     if class_type == 'speaking':
         source_const = source_const*6
@@ -114,8 +108,8 @@ def distance_to_prob(d,susceptible_status,source_status,
     return max(prob,0)
 
 
-def generate_aerosol_risk(room_vol, vax_infected, unvax_infected, time,
-                    class_type,class_risk_params,aerosol_params):
+def aerosol_risk(room_vol, vax_infected, unvax_infected, time,
+                    class_type,VE_params,aerosol_params):
 
     if class_type == 'breathing':
         v = aerosol_params['nominal_breathe_virus_emitted_hourly']
@@ -132,7 +126,7 @@ def generate_aerosol_risk(room_vol, vax_infected, unvax_infected, time,
     dose_array = hourly_virus_array * aerosol_params['inhale_air_rate'] / room_vol
 
     if vax_infected == 1:
-        dose_array = dose_array * (1 - class_risk_params['vax_effectiveness_transmission'])
+        dose_array = dose_array * (1 - VE_params['vax_effectiveness_transmission'])
 
     effective_dose_array = dose_array / aerosol_params['dose_response_constant']
     unvax_susceptible_risk_array = 1 - np.exp(-effective_dose_array)
@@ -147,7 +141,7 @@ def generate_aerosol_risk(room_vol, vax_infected, unvax_infected, time,
 def simulate_single_trial(room,vax_infected, unvax_infected,
                                     time,angle,class_type,room_vol,N,
                                     pixels_per_foot, air_exchanges_per_hour,
-                                    class_risk_params,aerosol_params):
+                                    VE_params,aerosol_params):
 
     room = room.reset_index()
     vax_infect_id = random.sample(list(room[room['seating'] == 'V']['index'].values), vax_infected)
@@ -164,10 +158,11 @@ def simulate_single_trial(room,vax_infected, unvax_infected,
     infected_x = infected['x']
     infected_y = infected['y']
 
-    # 1 air exchange per hour => aerosols reduced by half
+    # 1 air exchange per hour --> aerosols reduced by half;
+    # 2 air exchanges per hour --> aerosols reduced by a third, etc.
     unvax_aerosol_risk = 1/(air_exchanges_per_hour+1)*\
-        generate_aerosol_risk(room_vol, vax_infected, unvax_infected, time,\
-                            class_type,class_risk_params,aerosol_params)
+        aerosol_risk(room_vol, vax_infected, unvax_infected, time,\
+                            class_type,VE_params,aerosol_params)
 
     p_infections = []
     for i,row in uninfected.iterrows():
@@ -183,12 +178,12 @@ def simulate_single_trial(room,vax_infected, unvax_infected,
         susceptible_aerosol_risk = unvax_aerosol_risk
 
         if susceptible_status == 'V':
-            susceptible_aerosol_risk = susceptible_aerosol_risk * (1-class_risk_params['vax_effectiveness'])
+            susceptible_aerosol_risk = susceptible_aerosol_risk * (1-VE_params['vax_effectiveness'])
 
         if theta < 90 + angle:
             dist = np.sqrt((infected_x-x)**2+(infected_y-y)**2)
-            p = distance_to_prob(dist,susceptible_status,source_status,\
-                                time,pixels_per_foot,class_type,class_risk_params)
+            p = droplet_risk_by_distance(dist,susceptible_status,source_status,\
+                                time,pixels_per_foot,class_type,VE_params)
             p = max(p,susceptible_aerosol_risk)
             p_infections.append(p)
         else:
@@ -197,9 +192,9 @@ def simulate_single_trial(room,vax_infected, unvax_infected,
     return np.sum(p_infections),unvax_aerosol_risk
 
 
-def simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
+def simulate_classroom(N,p_vax,room,seating_function,time,angle,class_type ,
                             room_vol,pixels_per_foot,air_exchanges_per_hour,
-                            class_risk_params ,aerosol_params, ntrials):
+                            VE_params ,aerosol_params, ntrials):
 
     warnings.filterwarnings('ignore')
     trial = 0
@@ -208,8 +203,8 @@ def simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
     while trial < ntrials:
         grid = seating_function(N,p,room)
         # probability that an infected person is vaccinated
-        p_generate = (1-class_risk_params['vax_effectiveness'])*p/(1-class_risk_params['vax_effectiveness']*p)
-        ind = flip(p_generate)
+        p_inf_is_vax = (1-VE_params['vax_effectiveness'])*p_vax/(1-VE_params['vax_effectiveness']*p_vax)
+        ind = flip(p_inf_is_vax)
 
         if sum(grid['seating'] == 'V') == 0:
             ind = 0
@@ -219,9 +214,12 @@ def simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
         infect,aerosol = simulate_single_trial(grid,ind, 1-ind,
                                                 time,angle,class_type,room_vol,N,
                                                 pixels_per_foot, air_exchanges_per_hour,
-                                                class_risk_params,aerosol_params)
+                                                VE_params,aerosol_params)
         results.append(infect)
         aerosol_results.append(aerosol)
         trial = trial + 1
 
-    return [p,np.mean(results),np.std(results), np.mean(aerosol_results), np.std(aerosol_results)]
+    return [p_vax, np.mean(results), np.std(results), np.mean(aerosol_results), np.std(aerosol_results)]
+
+
+# TODO: run multiple parameter values (rather than point estimates)
