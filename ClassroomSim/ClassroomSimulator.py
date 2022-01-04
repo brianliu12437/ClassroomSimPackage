@@ -94,8 +94,8 @@ air_exchanges_per_hour = args.air_exchanges_per_hour
 # TODO: change this for every VE-VE combo
 # take cartesian product between the two arguments
 VE_params = {
-            'vax_effectiveness_transmission':args.vaccine_efficacy_transmission,
-            'vax_effectiveness': args.vaccine_efficacy
+            'VE_transmission':args.vaccine_efficacy_transmission,
+            'VE_susceptible': args.vaccine_efficacy
             }
 
 aerosol_params = {
@@ -110,7 +110,9 @@ aerosol_params = {
 
 # TODO: add default distribution for masking effectiveness (I imagine this won't change much, so we don't need argparse for it)
 
-test = ClassSimPackage.simulate_classroom(N,p,room,seating_function,time,angle,class_type ,
+mask_eff_mean, mask_eff_sd = 0.145, 0.0536
+
+test = ClassSimPackage.simulate_classroom(N,p,room,seating_function,time,angle,class_type,
                             room_vol,pixels_per_foot,air_exchanges_per_hour,
                             VE_params, aerosol_params, ntrials)
 print(test)
@@ -118,5 +120,3 @@ print(test)
 
 # TODO: add function for sampling from results with varying VE-VE combo and masking effectiveness distribution
 # TODO: function for plotting the histogram and printing quantiles
-
-# TODO: add documentation; clean up variable names

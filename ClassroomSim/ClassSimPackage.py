@@ -158,7 +158,7 @@ def aerosol_risk(room_vol, source_is_vax, time,
 
 
 
-def simulate_single_trial(room,source_is_vax, 
+def simulate_single_trial(grid,source_is_vax, 
                             time,angle,class_type,room_vol, N,
                             pixels_per_foot, air_exchanges_per_hour,
                             VE_params,aerosol_params):
@@ -168,7 +168,7 @@ def simulate_single_trial(room,source_is_vax,
     (2) the risk of aerosol transmission alone (this can be used to calculate the risk of a socially distant instructor)
     from running one trial of simulation.
     INPUTS:
-    room: a room plan with seating information (for each person, pixel of the seating location and vaccination status)
+    grid: a room plan with seating information (for each person, pixel of the seating location and vaccination status)
     source_is_vax: 1 if source is vaccinated, 0 otherwise
     time: length of exposure, measured in hours
     angle: defines the "cone of exposure" in the droplet transmission model. 
@@ -186,12 +186,12 @@ def simulate_single_trial(room,source_is_vax,
     aerosol_params: dictionary of parameters for the aerosol transmission model    
     """
 
-    room = room.reset_index()
-    vax_source_id = random.sample(list(room[room['seating'] == 'V']['index'].values), source_is_vax)
-    unvax_source_id = random.sample(list(room[room['seating'] == 'U']['index'].values), 1-source_is_vax)
-    infected = room[room['index'].isin(np.append(vax_source_id, unvax_source_id))]
-    uninfected = room[ (~room['index'].isin(np.append(vax_source_id, unvax_source_id))) & \
-                      (room['seating'] != 'E')  ]
+    grid = grid.reset_index()
+    vax_source_id = random.sample(list(grid[grid['seating'] == 'V']['index'].values), source_is_vax)
+    unvax_source_id = random.sample(list(grid[grid['seating'] == 'U']['index'].values), 1-source_is_vax)
+    infected = grid[grid['index'].isin(np.append(vax_source_id, unvax_source_id))]
+    uninfected = grid[ (~grid['index'].isin(np.append(vax_source_id, unvax_source_id))) & \
+                      (grid['seating'] != 'E')  ]
 
     if source_is_vax == 1:
         source_status = 'V'
