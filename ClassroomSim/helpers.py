@@ -1,3 +1,6 @@
+import numpy as np
+import random
+
 #helper functions
 def Diff(li1, li2):
     """

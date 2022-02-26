@@ -5,7 +5,7 @@ import itertools
 import random
 import math
 import warnings
-from .helpers import *
+from helpers import *
 
 # Generate seating plans
 def generate_clumpy_plan(N, p_vax, room, clump_size = 3):
@@ -259,7 +259,7 @@ def simulate_classroom(N, p_vax, room, seating_function, time, angle, class_type
     while trial < ntrials:
         grid = seating_function(N, p_vax, room)
         # probability that an infected person is vaccinated
-        p_inf_is_vax = (1-VE_params['vax_effectiveness'])*p_vax/(1-VE_params['vax_effectiveness']*p_vax)
+        p_inf_is_vax = (1-VE_params['VE_susceptible'])*p_vax/(1-VE_params['VE_susceptible']*p_vax)
         inf_is_vax = flip(p_inf_is_vax)
 
         if sum(grid['seating'] == 'V') == 0:
@@ -267,7 +267,7 @@ def simulate_classroom(N, p_vax, room, seating_function, time, angle, class_type
         elif sum(grid['seating'] == 'U') == 0:
             inf_is_vax= 1
 
-        infect, aerosol = simulate_single_trial(grid, inf_is_vax, 1-inf_is_vax,
+        infect, aerosol = simulate_single_trial(grid, inf_is_vax,
                                                 time, angle, class_type, room_vol, N,
                                                 pixels_per_foot, air_exchanges_per_hour,
                                                 VE_params, aerosol_params)
