@@ -12,6 +12,7 @@ def generate_clumpy_plan(N, p_vax, room, clump_size = 3):
     """ 
     Generates a seating plan where the unvaccinated students sit together
     in clumps. Represents the worst case scenario.
+    
     INPUTS:
     N: the number of students in the classroom
     p_vax: fraction of individuals in the room vaccinated
@@ -20,7 +21,7 @@ def generate_clumpy_plan(N, p_vax, room, clump_size = 3):
     """
     Nvax = np.random.binomial(N, p_vax)
     Nunvax = N-Nvax
-    room = room.drop('UnvaxSpot',axis = 1).reset_index()
+    room = room.drop('UnvaxSpot', axis = 1).reset_index()
     grid = room.copy()
     grid['seating'] = 'E'
 
@@ -70,14 +71,14 @@ def generate_random_plan(N, p_vax, room):
 
 #simulator functions
 
-def droplet_risk_by_distance(d, susceptible_status, source_status,
-                            time, pixels_per_foot, class_type, VE_params):
+def droplet_risk_by_distance(d, susceptible_status, source_status, time, pixels_per_foot, class_type, VE_params):
 
     """
-    Computes the risk that a susceptible person is infected through droplet transmission
-    by a source case seated a certain distance away from him/her, depending on the vaccination status of both
+    Computes the risk that an unmasked susceptible person is infected through droplet transmission
+    by an unmasked source case seated a certain distance away from him/her, depending on the vaccination status of both
     individuals, exposure time, VE parameters, and class type.
     (The risk of droplet transmission decreases with distance.)
+    
     INPUTS:
     d: distance between source and susceptible, measured in pixels.
     susceptible status: 'V' = vaccinated, 'U' = unvaccinated
@@ -115,11 +116,11 @@ def droplet_risk_by_distance(d, susceptible_status, source_status,
     return max(droplet_transmission_prob, 0)
 
 
-def aerosol_risk(room_vol, source_is_vax, time,
-                    class_type, VE_params, aerosol_params):
+def aerosol_risk(room_vol, source_is_vax, time, class_type, VE_params, aerosol_params):
     """
-    Computes the risk due to aerosol transmission for a susceptible person. 
+    Computes the risk due to aerosol transmission for an unvaccinated susceptible person. 
     The risk of aerosol transmission is assumed to be uniform over all distances.
+    
     INPUTS:
     room_vol: volume of the room, measured in cubic meters
     source_is_vax: 1 if the source is vaccinated, 0 otherwise
@@ -127,8 +128,10 @@ def aerosol_risk(room_vol, source_is_vax, time,
     class_type: one of ['breathing', 'speaking', 'singing', 'heavy_breathing', 'no_aerosol']. 
                 The 'no_aerosol' scenario applies to outdoor settings, where aerosols are quickly diluted by airflow.
     VE_params: dictionary of vaccine effectiveness parameters. 
-               'VE_susceptible' = reduction in infection risk for a vaccinated susceptible person
-               'VE_transmission' = reduction in the viral load emitted by a vaccinated infectious person
+               'VE_susceptible' = amount reduction in infection risk for a vaccinated susceptible person
+                    e.g., VE_susceptible = 0.7 <=> infection risk gets multiplied by 0.3 
+               'VE_transmission' = amount reduction in the viral load emitted by a vaccinated infectious person
+                    e.g., VE_transmission = 0.7 <=> emitted viral load gets multiplied by 0.3
     aerosol_params: dictionary of parameters for the aerosol transmission model
     """
 
@@ -152,14 +155,15 @@ def aerosol_risk(room_vol, source_is_vax, time,
     effective_dose_array = dose_array / aerosol_params['dose_response_constant']
     unvax_susceptible_risk_array = 1 - np.exp(-effective_dose_array)
     unvax_susceptible_risk = np.dot(unvax_susceptible_risk_array, np.array(aerosol_params['viral_load_distribution']))
-    unvax_susceptible_risk_over_time = 2.4*unvax_susceptible_risk * time # scale by 2.4 for Delta
+    # scale by 2.4 for Delta
+    unvax_susceptible_risk_over_time = 2.4*unvax_susceptible_risk * time 
 
     return unvax_susceptible_risk_over_time
 
 
 
-def simulate_single_trial(grid,source_is_vax, 
-                            time,angle,class_type,room_vol, N,
+def simulate_single_trial(grid, source_is_vax, 
+                            time,angle, class_type,room_vol, N,
                             pixels_per_foot, air_exchanges_per_hour,
                             VE_params,aerosol_params):
     """
@@ -167,6 +171,7 @@ def simulate_single_trial(grid,source_is_vax,
     (1) the expected number of secondary infections given one source case in a room
     (2) the risk of aerosol transmission alone (this can be used to calculate the risk of a socially distant instructor)
     from running one trial of simulation.
+
     INPUTS:
     grid: a room plan with seating information (for each person, pixel of the seating location and vaccination status)
     source_is_vax: 1 if source is vaccinated, 0 otherwise
@@ -277,5 +282,3 @@ def simulate_classroom(N, p_vax, room, seating_function, time, angle, class_type
 
     return [p_vax, np.mean(results), np.std(results), np.mean(aerosol_results), np.std(aerosol_results)]
 
-
-# TODO: run multiple parameter values (rather than point estimates)
