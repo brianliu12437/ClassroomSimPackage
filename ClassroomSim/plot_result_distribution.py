@@ -57,9 +57,9 @@ def plot_outcome_distribution(params, num_samples = 100000):
     print('finished sampling from prior, start plotting')
     
     #return result
-    plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, class_type, num_samples)
+    plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, class_type, num_samples, params['aerosol_only'])
 
-def plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, class_type, num_samples):
+def plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, class_type, num_samples, aerosol_only):
     quantiles = []
     for q in [0.05, 0.5, 0.95]:
         print(str(q)+'-quantile of per-person infection risk: ', np.quantile(result, q))
@@ -67,7 +67,11 @@ def plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, cl
 
     plt.figure(figsize = (7,5))
     plt.hist(result, bins=100, density = False)
-    plt.title('Distribution of infection risk per person\n prevalence {}, {} ft distancing, {} class'.format(prevalence, distancing, class_type))
+
+    subject = 'instructor' if aerosol_only else 'student'
+    title = 'Distribution of infection risk per {} \n prevalence {:.2f}%, {:.2f}% vaccinated, {} ft distancing, {} class'.format(subject, prevalence*100, p_vax*100, distancing, class_type)
+
+    plt.title(title)
     plt.xlabel('Risk of infection per person')
     plt.xlim([0, quantiles[-1]*1.5])
     plt.ylabel('Percentage of simulated outcomes')
@@ -83,12 +87,12 @@ def plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, cl
                 label='95% quantile {:.4f}% '.format(quantiles[2]*100))
 
     plt.legend()
-    plt.savefig('/home/yz685/ClassroomSimPackage/Results/'+ str(distancing) + \
-        '_ft_distancing_' + class_type + '_' + str(p_vax) + '_p_vax.pdf')
+    plt.savefig('/home/yz685/ClassroomSimPackage/Results/'+ str(prevalence) + '_prevalence_' + str(distancing) + \
+        '_ft_distancing_' + class_type + '_' + str(p_vax) + '_vaccinated_' + subject + '.pdf')
         
 if __name__ == '__main__':
 
     params = yaml.load(open(sys.argv[1]), Loader = yaml.FullLoader)
     print(params)
 
-    plot_outcome_distribution(params, num_samples = 1000000)
+    plot_outcome_distribution(params, num_samples = 10000)
