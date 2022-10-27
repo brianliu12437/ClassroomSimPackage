@@ -21,7 +21,7 @@ aerosol_params = {
     'viral_load_distribution': [0.12, 0.22, 0.3, 0.23, 0.103, 0.0236, 0.0034] # over orders of magnitude from 10^5 to 10^11
 }
 
-distancing_vals = [1, 3, 6] # TODO: add 1 back
+distancing_vals = [1, 3, 6] 
 p_vax_vals = [0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
 VE_susceptible_vals = np.linspace(0.1, 1, 10)
 VE_transmission_vals = np.linspace(0.1, 1, 10)

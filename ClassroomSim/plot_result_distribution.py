@@ -12,10 +12,15 @@ import yaml
 # the same as in https://colab.research.google.com/drive/1whAh1bvhvaMi42XsapHwNxgNMo2VqFmF#scrollTo=e3roVfd-YryT 
 # make sure to allow varying the fraction masked
 
-# TODO: figure out how to pass in param configs using a yaml file
-# TODO: add another transmissibility_scaling param to account for Delta --> Omicron
 
-def plot_outcome_distribution(params, num_samples = 100000):
+def plot_outcome_distribution(params: dict, num_samples: int = 100000):
+    """
+    Args:
+        params
+        num_samples
+    Returns:
+        makes and saves a histogram plot for the simulation results
+    """
 
     prevalence = params['prevalence']
     distancing = params['distancing']
@@ -43,6 +48,7 @@ def plot_outcome_distribution(params, num_samples = 100000):
         i = np.random.choice(len(sample_weights), 1, p = sample_weights)[0]
 
         masking_eff = sample_trunc_normal(params['mask_eff_mean'], params['mask_eff_sd'])
+        # TODO: enable an option to incorporate this multiplier or not
         Omicron_mult = sample_trunc_normal(params['Omicron_mult_mean'], params['Omicron_mult_sd'])
 
         sampled_sec_infs = sec_infs_diff_VE[i] * (params['fraction_masked'] * masking_eff + (1-params['fraction_masked'])) * prevalence / 50
@@ -51,7 +57,6 @@ def plot_outcome_distribution(params, num_samples = 100000):
         if 'student_faculty_population_mult' in params:
             sampled_sec_infs = sampled_sec_infs * params['student_faculty_population_mult']
 
-
         result.append(sampled_sec_infs)
     
     print('finished sampling from prior, start plotting')
@@ -59,7 +64,15 @@ def plot_outcome_distribution(params, num_samples = 100000):
     #return result
     plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, class_type, num_samples, params['aerosol_only'])
 
-def plot_results_and_compute_quantiles(result, distancing, p_vax, prevalence, class_type, num_samples, aerosol_only):
+def plot_results_and_compute_quantiles(
+    result: list, 
+    distancing: int, 
+    p_vax: float, 
+    prevalence: float, 
+    class_type: str, 
+    num_samples: int, 
+    aerosol_only: bool
+):
     quantiles = []
     for q in [0.05, 0.5, 0.95]:
         print(str(q)+'-quantile of per-person infection risk: ', np.quantile(result, q))
