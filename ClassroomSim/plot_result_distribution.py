@@ -9,10 +9,6 @@ from helpers import sample_trunc_normal, sample_trunc_lognormal
 import yaml
 import time
 
-# Goal: use argparse/yaml to read input parameters, then sample from prior, generate risk distribution, plot histogram
-# the same as in https://colab.research.google.com/drive/1whAh1bvhvaMi42XsapHwNxgNMo2VqFmF#scrollTo=e3roVfd-YryT 
-# make sure to allow varying the fraction masked
-
 
 def plot_outcome_distribution(params: dict, num_samples: int = 10000):
     """
@@ -33,8 +29,6 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
         params['weights_VE_transmission'] 
     )
 
-    print(sample_weights)
-
     result = []
 
     # load the means of the simulated number of secondary infections at the 
@@ -47,9 +41,7 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
     else:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
             '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')[:,5]
-    
-    print(sec_infs_diff_VE)
-    
+        
     print('start sampling from prior')
 
     start_time = time.time()
@@ -63,6 +55,10 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
             start_time = current_time
 
         i = np.random.choice(len(sample_weights), 1, p = sample_weights)[0]
+
+        # get the corresponding sampled VE_susceptible
+        VE_susceptible_param_idx = i // len(params['weights_VE_transmission'])
+        VE_sus = params['weights_VE_susceptible'][VE_susceptible_param_idx]
 
         masking_eff = sample_trunc_normal(
             params['mask_eff_mean'], 
@@ -83,7 +79,6 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
 
         sampled_sec_infs = sampled_sec_infs * params['class_hours_per_semester'] 
 
-
         if params["Omicron"]:
             Omicron_mult = sample_trunc_normal(
                 params['Omicron_mult_mean'], 
@@ -91,33 +86,38 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
             )
             sampled_sec_infs = sampled_sec_infs * Omicron_mult
 
-        if 'student_faculty_population_mult' in params:
+        if params['aerosol_only']:
             sampled_sec_infs = sampled_sec_infs * \
-                 params['student_faculty_population_mult']
+                params['total_student_population'] * \
+                params['instructor_teaching_frac'] / \
+                params['instructor_population'] * VE_sus
 
         result.append(sampled_sec_infs)
     
     print('finished sampling from prior, start plotting')
     
+    subject = params['instructor_type'] if 'instructor_type' in params \
+        else 'student'
+
     #return result
     plot_results_and_compute_quantiles(
-        result, 
-        distancing, 
-        p_vax, 
-        prevalence, 
-        class_type, 
-        num_samples, 
-        params['aerosol_only']
+        result = result, 
+        distancing = distancing, 
+        p_vax = p_vax,  
+        class_type = class_type, 
+        num_samples = num_samples, 
+        aerosol_only = params['aerosol_only'],
+        subject = subject
     )
 
 def plot_results_and_compute_quantiles(
     result: list, 
     distancing: int, 
     p_vax: float, 
-    prevalence: float, 
     class_type: str, 
     num_samples: int, 
-    aerosol_only: bool
+    aerosol_only: bool,
+    subject: str
 ):
     quantiles = []
     for q in [0.05, 0.5, 0.95]:
@@ -130,7 +130,6 @@ def plot_results_and_compute_quantiles(
     plt.figure(figsize = (7,5))
     plt.hist(result, bins=100, density = False)
 
-    subject = 'instructor' if aerosol_only else 'student'
     title = 'Distribution of infection risk per {} \n 1 ACH, {:.2f}% vaccinated, {} ft distancing, {} class'.format(subject, p_vax*100, distancing, class_type)
 
     plt.title(title)
