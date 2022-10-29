@@ -17,7 +17,8 @@ def flip(p):
 
 def sample_trunc_normal(mean, sd, lb = 0, ub = 1):
     """
-    Sample a truncated normal random variable with specified mean, sd, lower bound and upper bound.
+    Sample a truncated normal random variable with specified mean, sd, 
+    lower bound and upper bound.
     """
     valid = False
     while not valid:
@@ -25,4 +26,17 @@ def sample_trunc_normal(mean, sd, lb = 0, ub = 1):
         if s >= lb and s <= ub:
             valid = True
   
+    return s
+
+def sample_trunc_lognormal(mean, sd, threshold):
+    """
+    Sample a truncated lognormal random variable with specified mean, sd, 
+    lower bound and upper bound.
+    """
+    valid = False
+    while not valid:
+        s = np.random.lognormal(mean, sd, 1)[0]
+        if s>= threshold:
+            valid=True
+    
     return s
