@@ -14,22 +14,26 @@ seating_function = ClassSimPackage.generate_clumpy_plan
 aerosol_params = {
     'inhale_air_rate': 6.8,
     'dose_response_constant': 1440,
-    'nominal_breathe_virus_emitted_hourly': 3300, # corresponding to 10^8 copies / mL
+    # "nominal" corresponding to viral load of 10^8 copies / mL
+    'nominal_breathe_virus_emitted_hourly': 3300, 
     'nominal_talk_virus_emitted_hourly' : 27300,
     'nominal_sing_virus_emitted_hourly' : 330000,
     'nominal_heavy_breathe_virus_emitted_hourly': 3300*15,
-    'viral_load_distribution': [0.12, 0.22, 0.3, 0.23, 0.103, 0.0236, 0.0034] # over orders of magnitude from 10^5 to 10^11
+    # distribution of viral load over orders of magnitude from 10^5 to 10^11
+    'viral_load_distribution': [0.12, 0.22, 0.3, 0.23, 0.103, 0.0236, 0.0034]    
 }
 
 distancing_vals = [1, 3, 6] 
 p_vax_vals = [0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
-VE_susceptible_vals = np.linspace(0.1, 1, 10)
-VE_transmission_vals = np.linspace(0.1, 1, 10)
+# VE_susceptible_vals = np.linspace(0.1, 1, 10) # TODO: this is unnecessary, just use the values from literature
+# VE_transmission_vals = np.linspace(0.1, 1, 10)
+VE_susceptible_vals = [0.4, 0.42, 0.66, 0.76, 0.79, 0.88]
+VE_transmission_vals = [0, 0.5, 0.71]
 
 def load_rooms(distancing):
     if distancing == 1:
-        # with open("../Data/small_room_info.pickle" , 'rb') as handle:
-        with open("Data/small_room_info.pickle" , 'rb') as handle:
+        with open("../Data/small_room_info.pickle" , 'rb') as handle:
+        # with open("Data/small_room_info.pickle" , 'rb') as handle:
 
             layout = pickle.load(handle)
             pixels_per_foot = layout['pixels_per_foot']
@@ -37,14 +41,14 @@ def load_rooms(distancing):
             room = layout['plan']
 
     elif distancing == 3:
-        with open("Data/medium_room_info.pickle" , 'rb') as handle:
+        with open("../Data/medium_room_info.pickle" , 'rb') as handle:
             layout = pickle.load(handle)
             pixels_per_foot = layout['pixels_per_foot']
             room_vol = layout['volume']
             room = layout['plan']
 
     else: 
-        with open("Data/big_room_info.pickle" , 'rb') as handle:
+        with open("../Data/big_room_info.pickle" , 'rb') as handle:
             layout = pickle.load(handle)
             pixels_per_foot = layout['pixels_per_foot']
             room_vol = layout['volume']

@@ -1,4 +1,5 @@
 
+from typing import Callable, Tuple
 import numpy as np
 import pandas as pd
 import itertools
@@ -7,13 +8,14 @@ import math
 import warnings
 from helpers import *
 
+
 # Generate seating plans
 def generate_clumpy_plan(
     N: int, 
     p_vax: float, 
     room: pd.DataFrame, 
     clump_size: int = 3
-)->pd.DataFrame:
+) -> pd.DataFrame:
     """ 
     Generate a seating plan where the unvaccinated students sit together
     in clumps. Represents the worst case scenario.
@@ -73,16 +75,22 @@ def generate_clumpy_plan(
 
     return grid
 
-def generate_random_plan(N: int, p_vax: float, room: pd.DataFrame):
+
+def generate_random_plan(
+    N: int, 
+    p_vax: float, 
+    room: pd.DataFrame
+) -> pd.DataFrame:
     """ 
-    Generates a seating plan where students sit randomly in the room.
+    Generate a seating plan where students sit randomly in the room.
 
     Args:
-        N:
-        p_vax
-        room:
+        N: the number of students in the classroom
+        p_vax: fraction of individuals in the room vaccinated
+        room: dataframe specifying the type of room
     Returns:
-        grid:
+        grid: dataframe specifying the simulated student seats and their 
+            vaccination status
     """
     Nvax = round(N*p_vax)
     Nunvax = N-Nvax
@@ -100,17 +108,17 @@ def generate_random_plan(N: int, p_vax: float, room: pd.DataFrame):
 #simulator functions
 
 def droplet_risk_by_distance(
-    d, 
-    susceptible_status, 
-    source_status, 
-    time, 
-    pixels_per_foot, 
-    class_type, 
-    VE_params
-):
+    d: float, 
+    susceptible_status: str, 
+    source_status: str, 
+    time: float, 
+    pixels_per_foot: float, 
+    class_type: str, 
+    VE_params:dict
+) -> float:
 
-    """
-    Computes the risk that an unmasked susceptible person is infected through 
+    r"""
+    Compute the risk that an unmasked susceptible person is infected through 
     droplet transmission by an unmasked source case seated a certain distance 
     away from him/her, depending on the vaccination status of both individuals, 
     exposure time, VE parameters, and class type. (The risk of droplet 
@@ -130,6 +138,8 @@ def droplet_risk_by_distance(
                 susceptible person
             'VE_transmission' = reduction in the viral load emitted by a 
                 vaccinated infectious person
+    Returns:
+        combined risk of droplet and aerosol transmission
     """
 
     # convert distance in pixels to distance in meters
@@ -160,15 +170,15 @@ def droplet_risk_by_distance(
 
 
 def aerosol_risk(
-    room_vol, 
-    source_is_vax, 
-    time, 
-    class_type, 
-    VE_params, 
-    aerosol_params
-):
-    """
-    Computes the risk due to aerosol transmission for an unvaccinated 
+    room_vol: float, 
+    source_is_vax: int, 
+    time: float, 
+    class_type: str, 
+    VE_params: dict, 
+    aerosol_params: dict
+) -> float:
+    r"""
+    Compute the risk due to aerosol transmission for an unvaccinated 
     susceptible person. The risk of aerosol transmission is assumed to be 
     uniform over all distances.
     
@@ -187,6 +197,8 @@ def aerosol_risk(
                 vaccinated infectious person. e.g., VE_transmission = 0.7 
                 <=> emitted viral load gets multiplied by 0.3
         aerosol_params: dict of parameters for the aerosol transmission model
+    Returns:
+        risk of aerosol transmission
     """
 
     if class_type == 'breathing':
@@ -218,29 +230,35 @@ def aerosol_risk(
     return unvax_susceptible_risk_over_time
 
 
-
-def simulate_single_trial(grid, source_is_vax, 
-                            time,angle, class_type,room_vol, N,
-                            pixels_per_foot, air_exchanges_per_hour,
-                            VE_params,aerosol_params):
-    """
-    Computes two quantities:
+def simulate_single_trial(
+    grid: pd.DataFrame, 
+    source_is_vax: int, 
+    time: float,
+    angle: float, 
+    class_type: str,
+    room_vol: float, 
+    pixels_per_foot: float, 
+    air_exchanges_per_hour: int,
+    VE_params: dict,
+    aerosol_params: dict
+) -> Tuple[float, float]:
+    r"""
+    Compute two quantities from one trial of simulation:
     (1) expected number of secondary infections given one source case in a room
     (2) risk of aerosol transmission alone (this can be used to calculate the 
         risk of a socially distant instructor)
-    from running one trial of simulation.
 
     Args:
         grid: a room plan with seating information (for each person, pixel of 
             the seating location and vaccination status)
         source_is_vax: 1 if source is vaccinated, 0 otherwise
         time: length of exposure, measured in hours
-        angle: defines the "cone of exposure" in the droplet transmission model. 
+        angle: defines the "cone of exposure" in the droplet transmission model,
+                which extends from (-angle, 180+angle). Measured in degrees. 
                 Susceptibles outside of this cone are assumed to be not at risk.
         class_type: one of ['breathing', 'speaking', 'singing', 
             'heavy_breathing', 'no_aerosol']. 
         room_vol: volume of the room, measured in cubic meters
-        N: number of individuals in the room
         pixels_per_foot: a parameter for translating distance in feet to the 
             number of pixels in the room layout
         air_exchanges_per_hour: rate of ventilation that reduces the risk of 
@@ -320,22 +338,22 @@ def simulate_single_trial(grid, source_is_vax,
 
 
 def simulate_classroom(
-    N, 
-    p_vax, 
-    room, 
-    seating_function, 
-    time, 
-    angle, 
-    class_type,
-    room_vol, 
-    pixels_per_foot, 
-    air_exchanges_per_hour,
-    VE_params, 
-    aerosol_params, 
-    ntrials
-):
-    """
-    Simulate ntrials number of trials. Returns a 5-dimensional array with
+    N: int, 
+    p_vax: float, 
+    room: pd.DataFrame, 
+    seating_function: Callable, 
+    time: float, 
+    angle: float, 
+    class_type: str,
+    room_vol: float, 
+    pixels_per_foot: float, 
+    air_exchanges_per_hour: int,
+    VE_params: dict, 
+    aerosol_params: dict, 
+    ntrials: int
+) -> list[float]:
+    r"""
+    Simulate `ntrials` trials. Returns a 5-dimensional array with
     (1) p_vax: probability that a person is vaccinated
     (2) mean and SD of the number of secondary infections generated by one 
         infectious person
@@ -347,8 +365,6 @@ def simulate_classroom(
             Allocates vaccinated and unvaccinated individuals to eligible seats 
             in a room.
         ntrials: the number of trials to run the simulation for.
-    Returns:
-
     """
 
     warnings.filterwarnings('ignore')
@@ -360,6 +376,7 @@ def simulate_classroom(
         # probability that an infected person is vaccinated
         ve_sus = VE_params['VE_susceptible']
         p_inf_is_vax = (1-ve_sus) * p_vax/(1-ve_sus*p_vax)
+        # sample inf_is_vax ~ Bernoulli(p_inf_is_vax)
         inf_is_vax = flip(p_inf_is_vax)
 
         if sum(grid['seating'] == 'V') == 0:
@@ -369,7 +386,7 @@ def simulate_classroom(
 
         infect, aerosol = simulate_single_trial(
             grid, inf_is_vax,
-            time, angle, class_type, room_vol, N,
+            time, angle, class_type, room_vol,
             pixels_per_foot, air_exchanges_per_hour,
             VE_params, aerosol_params
         )
