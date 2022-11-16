@@ -7,8 +7,10 @@ fraction_masked: 1.0
 
 # weights_VE_transmission: [0.3333, 0.3333, 0.3334]
 # weights_VE_susceptible: [0.167, 0.167, 0.167, 0.167, 0.166, 0.166]
-weights_VE_transmission: [0.005, 0.947, 0.048]
-weights_VE_susceptible: [0.63, 0.07, 0.01, 0.07, 0.17, 0.05]
+weights_VE_transmission: [0.004584331167, 0.9471482332, 0.04826743561]
+weights_VE_susceptible: [0.6329623799, 0.07003466183, 0.009014613832, 0.0672255304, 0.1703857239, 0.05037709018]
+VE_susceptible_vals: [0.4, 0.42, 0.66, 0.76, 0.79, 0.88]
+VE_transmission_vals: [0, 0.5, 0.71]
 
 mask_eff_mean: 0.145
 mask_eff_sd: 0.0536

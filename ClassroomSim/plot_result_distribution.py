@@ -34,7 +34,13 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
     # load the means of the simulated number of secondary infections at the 
     # specified distancing and p_vax for *varying* values of VE_transmission 
     # and VE_susceptible
-    
+
+
+    all_results = np.load('Outcomes_vary_params/' + str(distancing) + \
+            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')
+    print('all_results', all_results)
+
+
     if not params['aerosol_only']:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
             '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')[:,3]
@@ -58,7 +64,11 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
 
         # get the corresponding sampled VE_susceptible
         VE_susceptible_param_idx = i // len(params['weights_VE_transmission'])
-        VE_sus = params['weights_VE_susceptible'][VE_susceptible_param_idx]
+        # VE_sus = params['weights_VE_susceptible'][VE_susceptible_param_idx]
+        VE_sus = params['VE_susceptible_vals'][VE_susceptible_param_idx]
+        # print('VE_sus', VE_sus)
+        # print('sampled index i', i)
+        # print('logged VE sus', all_results[i][0])
 
         masking_eff = sample_trunc_normal(
             params['mask_eff_mean'], 

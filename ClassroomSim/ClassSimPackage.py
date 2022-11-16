@@ -327,7 +327,7 @@ def simulate_single_trial(
             dist = np.sqrt((infected_x-x)**2+(infected_y-y)**2)
             p = droplet_risk_by_distance(dist,susceptible_status,source_status,\
                                 time,pixels_per_foot,class_type,VE_params)
-            p = max(p,susceptible_aerosol_risk)
+            p = max(p, susceptible_aerosol_risk)
             p_infections.append(p)
         # if the susceptible is outside the cone, 
         # he/she is subject to aerosol risk only

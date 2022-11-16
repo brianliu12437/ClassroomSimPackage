@@ -80,5 +80,5 @@ if __name__ == '__main__':
                                     VE_params, aerosol_params, ntrials)
                         results_all_VEs.append([VE_susceptible, VE_transmission] + result)
                 
-                np.save(results_dir + str(p_vax) + '_p_vax.npy', results_all_VEs)
+                # np.save(results_dir + str(p_vax) + '_p_vax.npy', results_all_VEs)
                 print('saved results for {} ft distancing, {} class, {} fraction vaccination'.format(distancing, class_type, p_vax))
