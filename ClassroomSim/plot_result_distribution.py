@@ -10,7 +10,7 @@ import yaml
 import time
 
 
-def plot_outcome_distribution(params: dict, num_samples: int = 10000):
+def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: str = ''):
     """
     Args:
         params
@@ -36,17 +36,18 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
     # and VE_susceptible
 
 
-    all_results = np.load('Outcomes_vary_params/' + str(distancing) + \
-            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')
-    print('all_results', all_results)
+    # all_results = np.load('Outcomes_vary_params/' + str(distancing) + \
+    #         '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')
+    # print('all_results', all_results)
 
 
     if not params['aerosol_only']:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
-            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')[:,3]
+            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax' + suffix + '.npy')[:,3]
+        print(sec_infs_diff_VE)
     else:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
-            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')[:,5]
+            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax' + suffix + '.npy')[:,5]
         
     print('start sampling from prior')
 
@@ -117,7 +118,8 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000):
         class_type = class_type, 
         num_samples = num_samples, 
         aerosol_only = params['aerosol_only'],
-        subject = subject
+        subject = subject,
+        suffix = suffix
     )
 
 def plot_results_and_compute_quantiles(
@@ -127,7 +129,8 @@ def plot_results_and_compute_quantiles(
     class_type: str, 
     num_samples: int, 
     aerosol_only: bool,
-    subject: str
+    subject: str,
+    suffix: str = ''
 ):
     quantiles = []
     for q in [0.05, 0.5, 0.95]:
@@ -153,7 +156,7 @@ def plot_results_and_compute_quantiles(
         ['{:.2f}%'.format(p*100/num_samples) for p in plt.gca().get_yticks()]
     ) 
 
-    plt.axvline(quantiles[0], color='g', linestyle='dashed', linewidth=2, 
+    plt.axvline(quantiles[0], color='orange', linestyle='dashed', linewidth=2, 
                 label='5% quantile {:.4f}% '.format(quantiles[0]*100))
     plt.axvline(quantiles[1], color='r', linestyle='dashed', linewidth=2, 
                 label='median {:.4f}% '.format(quantiles[1]*100))
@@ -166,11 +169,16 @@ def plot_results_and_compute_quantiles(
     #      '_' + str(p_vax) + '_vaccinated_' + subject + '.pdf')
     plt.savefig('/home/yz685/ClassroomSimPackage/Results/'+ str(distancing) + 
         '_ft_distancing_' + class_type + '_' + str(p_vax) + '_vaccinated_' + 
-        subject + '.pdf')
+        subject + suffix + '.pdf')
         
 if __name__ == '__main__':
 
     params = yaml.load(open(sys.argv[1]), Loader = yaml.FullLoader)
     print(params)
 
+    # plot_outcome_distribution(params, num_samples = 100000, suffix = '_random_seating')
     plot_outcome_distribution(params, num_samples = 100000)
+
+# to run:
+# go to ClassroomSimPackage/ClassroomSim/, then run
+# python plot_result_distribution.py ../simulation_configs/breathing_1ft_0.9vax_students.yaml
