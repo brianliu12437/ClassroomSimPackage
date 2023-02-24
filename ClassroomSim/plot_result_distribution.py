@@ -1,13 +1,17 @@
-from genericpath import exists
-import ClassSimPackage
+import os
 import pickle
-import os, sys
+import sys
+
+import ClassSimPackage
+from genericpath import exists
+
 sys.path.append(os.path.abspath(os.path.join('..')))
-import numpy as np
-import matplotlib.pyplot as plt
-from helpers import sample_trunc_normal, sample_trunc_lognormal
-import yaml
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import yaml
+from helpers import sample_trunc_lognormal, sample_trunc_normal
 
 
 def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: str = ''):
@@ -43,11 +47,11 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: st
 
     if not params['aerosol_only']:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
-            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax' + suffix + '.npy')[:,3]
+            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax' + '.npy')[:,3]
         print(sec_infs_diff_VE)
     else:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
-            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax' + suffix + '.npy')[:,5]
+            '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax' + '.npy')[:,5]
         
     print('start sampling from prior')
 
@@ -164,9 +168,7 @@ def plot_results_and_compute_quantiles(
                 label='95% quantile {:.4f}% '.format(quantiles[2]*100))
 
     plt.legend()
-    # plt.savefig('/home/yz685/ClassroomSimPackage/Results/'+ str(prevalence) + 
-    #      '_prevalence_' + str(distancing) + '_ft_distancing_' + class_type +  
-    #      '_' + str(p_vax) + '_vaccinated_' + subject + '.pdf')
+
     plt.savefig('/home/yz685/ClassroomSimPackage/Results/'+ str(distancing) + 
         '_ft_distancing_' + class_type + '_' + str(p_vax) + '_vaccinated_' + 
         subject + suffix + '.pdf')
@@ -177,7 +179,8 @@ if __name__ == '__main__':
     print(params)
 
     # plot_outcome_distribution(params, num_samples = 100000, suffix = '_random_seating')
-    plot_outcome_distribution(params, num_samples = 100000)
+    # plot_outcome_distribution(params, num_samples = 100000)
+    plot_outcome_distribution(params, num_samples = 100000, suffix = '_adjusted_prevalence')
 
 # to run:
 # go to ClassroomSimPackage/ClassroomSim/, then run
