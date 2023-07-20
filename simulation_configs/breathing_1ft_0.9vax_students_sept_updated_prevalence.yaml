@@ -1,12 +1,9 @@
-# prevalence: 0.005
 distancing: 1
 p_vax: 0.9
 aerosol_only: False
 class_type: 'breathing'
 fraction_masked: 1.0
 
-# weights_VE_transmission: [0.3333, 0.3333, 0.3334]
-# weights_VE_susceptible: [0.167, 0.167, 0.167, 0.167, 0.166, 0.166]
 weights_VE_transmission: [0.004584331167, 0.9471482332, 0.04826743561]
 weights_VE_susceptible: [0.6329623799, 0.07003466183, 0.009014613832, 0.0672255304, 0.1703857239, 0.05037709018]
 VE_susceptible_vals: [0.4, 0.42, 0.66, 0.76, 0.79, 0.88]
@@ -18,12 +15,14 @@ mask_eff_sd: 0.0536
 Omicron_mult_mean: 3.5 
 Omicron_mult_sd: 0.7653
 
-student_inf_mean: 6.791
-student_inf_sd: 0.413
-student_inf_so_far: 0
+student_inf_mean: 6.8718
+student_inf_sd: 0.3719985
+student_inf_so_far: 488
 
 Omicron: False
 
 class_hours_per_semester: 315
 
 total_student_population: 15000
+
+save_suffix: '_sept_updated_prevalence'
