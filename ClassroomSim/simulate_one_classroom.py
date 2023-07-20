@@ -1,8 +1,17 @@
+"""
+This file contains functions for simulating the risk in one classroom.
+In each single trial, the simulator generates a seating plan for students, 
+randomly selects one infectious student, and computes the risk of infection
+for each susceptible student in the room based on the mathematical model. 
+The simulator then sums up the risk of infection for all susceptible students
+to obtain the expected number of secondary infections per class. 
+The simulator repeats this process for `ntrials` trials and returns the mean
+and standard deviation of the number of secondary infections.
+"""
 
 from typing import Callable, Tuple
 import numpy as np
 import pandas as pd
-import itertools
 import random
 import math
 import warnings

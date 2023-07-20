@@ -1,16 +1,21 @@
-import os
-import pickle
+"""
+Script for generating semester-level risk distribution for a population.
+Distancing, vaccination rate, masking rate, and class type are specified in a yaml file.
+The script samples from the prior distribution of VE_susceptible, VE_transmission,
+prevalence, and masking effectiveness, and computes the risk distribution for each sample.
+It then plots the distribution of risk across all samples (by default 10000).
+
+To run, go to ClassroomSimPackage/ClassroomSim/, then run
+python plot_semester_risk_distribution.py ../simulation_configs/breathing_1ft_0.9vax_students_original_prevalence.yaml
+"""
+
 import sys
-
-import ClassSimPackage
-from genericpath import exists
-
-sys.path.append(os.path.abspath(os.path.join('..')))
 import time
-
+import random
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
+
 from helpers import sample_trunc_lognormal, sample_trunc_normal
 
 
@@ -23,7 +28,6 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: st
         makes and saves a histogram plot for the simulation results
     """
 
-    # prevalence = params['prevalence'] # TODO: should we be sampling prevalence?
     distancing = params['distancing']
     p_vax = params['p_vax']
     class_type = params['class_type']
@@ -35,15 +39,12 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: st
 
     result = []
 
-    # load the means of the simulated number of secondary infections at the 
-    # specified distancing and p_vax for *varying* values of VE_transmission 
-    # and VE_susceptible
-
-
-    # all_results = np.load('Outcomes_vary_params/' + str(distancing) + \
-    #         '_ft_distancing/' + class_type + '/' + str(p_vax)+'_p_vax.npy')
-    # print('all_results', all_results)
-
+    # load the mean number of secondary infections at the specified distancing 
+    # and p_vax for *varying* values of VE_transmission and VE_susceptible
+    # the .npy file is a 2D array, with each row of the form
+    # [VE_susceptible, VE_transmission, p_vax, 
+    # mean_num_sec_infs, sd_num_sec_infs, 
+    # mean_num_sec_infs_aerosol_only, sd_num_sec_infs_aerosol_only]
 
     if not params['aerosol_only']:
         sec_infs_diff_VE = np.load('Outcomes_vary_params/' + str(distancing) + \
@@ -69,11 +70,7 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: st
 
         # get the corresponding sampled VE_susceptible
         VE_susceptible_param_idx = i // len(params['weights_VE_transmission'])
-        # VE_sus = params['weights_VE_susceptible'][VE_susceptible_param_idx]
         VE_sus = params['VE_susceptible_vals'][VE_susceptible_param_idx]
-        # print('VE_sus', VE_sus)
-        # print('sampled index i', i)
-        # print('logged VE sus', all_results[i][0])
 
         masking_eff = sample_trunc_normal(
             params['mask_eff_mean'], 
@@ -121,7 +118,7 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: st
         p_vax = p_vax,  
         class_type = class_type, 
         num_samples = num_samples, 
-        aerosol_only = params['aerosol_only'],
+        # aerosol_only = params['aerosol_only'],
         subject = subject,
         suffix = suffix
     )
@@ -132,7 +129,7 @@ def plot_results_and_compute_quantiles(
     p_vax: float, 
     class_type: str, 
     num_samples: int, 
-    aerosol_only: bool,
+    # aerosol_only: bool,
     subject: str,
     suffix: str = ''
 ):
@@ -178,10 +175,7 @@ if __name__ == '__main__':
     params = yaml.load(open(sys.argv[1]), Loader = yaml.FullLoader)
     print(params)
 
-    # plot_outcome_distribution(params, num_samples = 100000, suffix = '_random_seating')
-    # plot_outcome_distribution(params, num_samples = 100000)
-    plot_outcome_distribution(params, num_samples = 100000, suffix = '_adjusted_prevalence')
+    np.random.seed(0)
+    random.seed(0)
 
-# to run:
-# go to ClassroomSimPackage/ClassroomSim/, then run
-# python plot_result_distribution.py ../simulation_configs/breathing_1ft_0.9vax_students.yaml
+    plot_outcome_distribution(params, num_samples = 100000, suffix = params["save_suffix"])
