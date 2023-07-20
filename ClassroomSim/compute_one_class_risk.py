@@ -12,6 +12,7 @@ import simulate_one_classroom
 import pickle
 import os
 import numpy as np
+import random
 
 N = 50
 angle = 15
@@ -43,8 +44,6 @@ VE_transmission_vals = [0, 0.5, 0.71]
 def load_rooms(distancing):
     if distancing == 1:
         with open("../Data/small_room_info.pickle" , 'rb') as handle:
-        # with open("Data/small_room_info.pickle" , 'rb') as handle:
-
             layout = pickle.load(handle)
             pixels_per_foot = layout['pixels_per_foot']
             room_vol = layout['volume']
@@ -68,6 +67,9 @@ def load_rooms(distancing):
 
 
 if __name__ == '__main__':
+
+    np.random.seed(0)
+    random.seed(0)
 
     for distancing in distancing_vals:
         
