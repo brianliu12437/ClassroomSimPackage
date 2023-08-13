@@ -166,7 +166,7 @@ def plot_results_and_compute_quantiles(
 
     plt.legend()
 
-    plt.savefig('/home/yz685/ClassroomSimPackage/Results/'+ str(distancing) + 
+    plt.savefig('/home/yz685/ClassroomSimPackage/plots/'+ str(distancing) + 
         '_ft_distancing_' + class_type + '_' + str(p_vax) + '_vaccinated_' + 
         subject + suffix + '.pdf')
         
