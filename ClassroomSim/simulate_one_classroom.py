@@ -15,7 +15,7 @@ import pandas as pd
 import random
 import math
 import warnings
-from helpers import *
+from ClassroomSim.helpers import *
 
 
 # Generate seating plans
