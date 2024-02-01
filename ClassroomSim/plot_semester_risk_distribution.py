@@ -107,9 +107,14 @@ def plot_outcome_distribution(params: dict, num_samples: int = 10000, suffix: st
         result.append(sampled_sec_infs)
     
     print('finished sampling from prior, start plotting')
+
+    if 'instructor_type' in params:
+        subject = 'vaccinated '+params['instructor_type']
+    else:
+        subject = 'student'
     
-    subject = params['instructor_type'] if 'instructor_type' in params \
-        else 'student'
+    # subject = 'vaccinated '+params['instructor_type'] if 'instructor_type' in params \
+        # else 'student'
 
     #return result
     plot_results_and_compute_quantiles(
@@ -151,7 +156,7 @@ def plot_results_and_compute_quantiles(
     plt.xlim([0, quantiles[-1]*1.5])
     plt.ylabel('Percentage of simulated outcomes')
     plt.gca().set_xticklabels(
-        ['{:.2f}%'.format(p*100) for p in plt.gca().get_xticks()]
+        ['{:.3f}%'.format(p*100) for p in plt.gca().get_xticks()]
     ) 
     plt.gca().set_yticklabels(
         ['{:.2f}%'.format(p*100/num_samples) for p in plt.gca().get_yticks()]

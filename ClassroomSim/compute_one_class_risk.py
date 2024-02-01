@@ -20,7 +20,6 @@ time = 1
 # class_types = ['breathing', 'speaking', 'singing']
 class_types = ['breathing']
 ntrials = 500
-air_exchanges_per_hour = 1
 seating_function = simulate_one_classroom.generate_clumpy_plan
 aerosol_params = {
     'inhale_air_rate': 6.8,
@@ -34,10 +33,12 @@ aerosol_params = {
     'viral_load_distribution': [0.12, 0.22, 0.3, 0.23, 0.103, 0.0236, 0.0034]    
 }
 
-# distancing_vals = [1, 3, 6] 
-distancing_vals = [1]
+distancing_vals = [1, 3, 6] 
+# distancing_vals = [1]
 # p_vax_vals = [0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
 p_vax_vals = [0.9]
+air_exchanges_per_hour_vals = [1,2,3]
+
 VE_susceptible_vals = [0.4, 0.42, 0.66, 0.76, 0.79, 0.88]
 VE_transmission_vals = [0, 0.5, 0.71]
 
@@ -77,10 +78,12 @@ if __name__ == '__main__':
 
         for class_type in class_types:
 
-            results_dir = 'Outcomes_vary_params/' + str(distancing) + '_ft_distancing/' + class_type + '/'
-            os.makedirs(results_dir, exist_ok = True)
+            # results_dir = 'Outcomes_vary_params/' + str(distancing) + '_ft_distancing/' + class_type + '/'
+            # os.makedirs(results_dir, exist_ok = True)
         
-            for p_vax in p_vax_vals:
+            for p_vax, ach in zip(p_vax_vals, air_exchanges_per_hour_vals):
+                results_dir = 'Outcomes_vary_params_revision/'
+                os.makedirs(results_dir, exist_ok = True)
                 # store VE x VE results in a table for each (distancing, p_vax)
                 print('computing {} ft distancing, {} fraction vaccination'.format(distancing, p_vax))
                 results_all_VEs = []
@@ -88,10 +91,11 @@ if __name__ == '__main__':
                     for VE_transmission in VE_transmission_vals:
                         VE_params = {'VE_susceptible': VE_susceptible, 'VE_transmission': VE_transmission}
                         result = simulate_one_classroom.simulate_classroom(N,p_vax,room,seating_function,time,angle,class_type,
-                                    room_vol,pixels_per_foot,air_exchanges_per_hour,
+                                    room_vol,pixels_per_foot,ach,
                                     VE_params, aerosol_params, ntrials)
                         results_all_VEs.append([VE_susceptible, VE_transmission] + result)
                 
                 # np.save(results_dir + str(p_vax) + '_p_vax_random_seating.npy', results_all_VEs)
-                np.save(results_dir + str(p_vax) + '_p_vax.npy', results_all_VEs)
+                # np.save(results_dir + str(p_vax) + '_p_vax.npy', results_all_VEs)
+                np.save(results_dir + f'distancing={distancing}_pvax={p_vax}_ach={ach}_type={class_type}.npy', results_all_VEs)
                 print('saved results for {} ft distancing, {} class, {} fraction vaccination'.format(distancing, class_type, p_vax))
